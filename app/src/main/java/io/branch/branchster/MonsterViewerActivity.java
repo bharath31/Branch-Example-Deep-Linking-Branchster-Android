@@ -5,6 +5,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.text.TextUtils;
@@ -13,9 +14,12 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.annotation.Target;
+import java.net.URI;
 import java.util.Random;
 
 import io.branch.branchster.fragment.InfoFragment;
@@ -97,18 +101,20 @@ public class MonsterViewerActivity extends FragmentActivity implements InfoFragm
         findViewById(R.id.share_btn).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                shareMyMonster();
-                new BranchEvent(BRANCH_STANDARD_EVENT.PURCHASE)
-                        .addCustomDataProperty("MonsterName", myMonsterObject_.getTitle())
-                        .setCurrency(CurrencyType.USD)
-                        .setDescription(myMonsterObject_.getDescription())
-                        .addContentItems(myMonsterObject_)
-                        .logEvent(MonsterViewerActivity.this);
-                
+                performInAppRouting();
             }
         });
     }
-    
+
+    private void performInAppRouting() {
+        String url = "https://branchster.app.link/03Y5IoY1XP?$android_deeplink_path=hello";
+        Intent intent = new Intent(this, SplashActivity.class);
+        intent.putExtra("branch",url);
+        intent.putExtra("branch_force_new_session",true);
+        startActivity(intent);
+    }
+
+
     /**
      * Method to share my custom monster with sharing with Branch Share sheet
      */
@@ -134,7 +140,7 @@ public class MonsterViewerActivity extends FragmentActivity implements InfoFragm
         myMonsterObject_.showShareSheet(MonsterViewerActivity.this, linkProperties, shareSheetStyle, new Branch.BranchLinkShareListener() {
                     Random rnd = new Random(System.currentTimeMillis());
                     Double revenue;
-                    
+
                     @Override
                     public void onShareLinkDialogLaunched() {
                         JSONObject jsonObject = new JSONObject();
@@ -146,15 +152,15 @@ public class MonsterViewerActivity extends FragmentActivity implements InfoFragm
                         }
                         Branch.getInstance(getApplicationContext()).userCompletedAction("Add to Cart", jsonObject);
                     }
-                    
+
                     @Override
                     public void onShareLinkDialogDismissed() {
                     }
-                    
+
                     @Override
                     public void onLinkShareResponse(String sharedLink, String sharedChannel, BranchError error) {
                     }
-                    
+
                     @Override
                     public void onChannelSelected(String channelName) {
                         Product branchster = new Product();
@@ -179,7 +185,7 @@ public class MonsterViewerActivity extends FragmentActivity implements InfoFragm
                                 channel.contains("Slack") ? "title for slack" :
                                         channel.contains("Gmail") ? "title for gmail" : null;
                     }
-                    
+
                     @Override
                     public String getSharingMessageForChannel(String channel) {
                         return channel.contains("Messaging") ? "message for SMS" :
